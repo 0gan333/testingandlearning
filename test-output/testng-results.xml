@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results ignored="0" total="6" passed="5" failed="1" skipped="0">
+  <reporter-output>
+  </reporter-output>
+  <suite started-at="2024-12-05T20:45:04 CET" name="Default suite" finished-at="2024-12-05T20:46:07 CET" duration-ms="62944">
+    <groups>
+    </groups>
+    <test started-at="2024-12-05T20:45:04 CET" name="Default test" finished-at="2024-12-05T20:46:07 CET" duration-ms="62944">
+      <class name="MavenProject.testingandlearning.DynamicUIComponentsTest">
+        <test-method is-config="true" signature="setup()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:05 CET" name="setup" finished-at="2024-12-05T20:45:13 CET" duration-ms="8078" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setup -->
+        <test-method signature="checkTitle()[pri:1, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:13 CET" name="checkTitle" finished-at="2024-12-05T20:45:15 CET" duration-ms="2622" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- checkTitle -->
+        <test-method is-config="true" signature="afterMethod()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:15 CET" name="afterMethod" finished-at="2024-12-05T20:45:20 CET" duration-ms="5008" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterMethod -->
+        <test-method signature="selectOnlyDrillCheckbox()[pri:2, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:20 CET" name="selectOnlyDrillCheckbox" finished-at="2024-12-05T20:45:21 CET" duration-ms="582" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- selectOnlyDrillCheckbox -->
+        <test-method is-config="true" signature="afterMethod()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:21 CET" name="afterMethod" finished-at="2024-12-05T20:45:26 CET" duration-ms="5014" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterMethod -->
+        <test-method signature="selectDropdownOption()[pri:3, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:26 CET" name="selectDropdownOption" finished-at="2024-12-05T20:45:26 CET" duration-ms="260" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- selectDropdownOption -->
+        <test-method is-config="true" signature="afterMethod()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:26 CET" name="afterMethod" finished-at="2024-12-05T20:45:31 CET" duration-ms="5012" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterMethod -->
+        <test-method signature="selectDrillAndSetQuantity()[pri:4, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:31 CET" name="selectDrillAndSetQuantity" finished-at="2024-12-05T20:45:35 CET" duration-ms="4072" status="FAIL">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[Quantity did not match expected value of 4. expected [4] but found [1]]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: Quantity did not match expected value of 4. expected [4] but found [1]
+at org.testng.Assert.fail(Assert.java:110)
+at org.testng.Assert.failNotEquals(Assert.java:1413)
+at org.testng.Assert.assertEqualsImpl(Assert.java:149)
+at org.testng.Assert.assertEquals(Assert.java:131)
+at org.testng.Assert.assertEquals(Assert.java:1240)
+at MavenProject.testingandlearning.DynamicUIComponentsTest.selectDrillAndSetQuantity(DynamicUIComponentsTest.java:150)
+at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:139)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:677)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:221)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:50)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:969)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:194)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:148)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:128)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+at org.testng.TestRunner.privateRun(TestRunner.java:829)
+at org.testng.TestRunner.run(TestRunner.java:602)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:437)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:431)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:391)
+at org.testng.SuiteRunner.run(SuiteRunner.java:330)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1256)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1176)
+at org.testng.TestNG.runSuites(TestNG.java:1099)
+at org.testng.TestNG.run(TestNG.java:1067)
+at org.testng.remote.AbstractRemoteTestNG.run(AbstractRemoteTestNG.java:115)
+at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:293)
+at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:91)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- selectDrillAndSetQuantity -->
+        <test-method is-config="true" signature="afterMethod()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:35 CET" name="afterMethod" finished-at="2024-12-05T20:45:40 CET" duration-ms="5009" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterMethod -->
+        <test-method signature="addToCartAndCheckAlert()[pri:5, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:40 CET" name="addToCartAndCheckAlert" finished-at="2024-12-05T20:45:42 CET" duration-ms="1382" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- addToCartAndCheckAlert -->
+        <test-method is-config="true" signature="afterMethod()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:42 CET" name="afterMethod" finished-at="2024-12-05T20:45:47 CET" duration-ms="5013" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterMethod -->
+        <test-method signature="verifyCartAndProceedToCheckout()[pri:6, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:47 CET" name="verifyCartAndProceedToCheckout" finished-at="2024-12-05T20:45:57 CET" duration-ms="10406" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- verifyCartAndProceedToCheckout -->
+        <test-method is-config="true" signature="afterMethod()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:45:57 CET" name="afterMethod" finished-at="2024-12-05T20:46:02 CET" duration-ms="5011" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterMethod -->
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:MavenProject.testingandlearning.DynamicUIComponentsTest@47eaca72]" started-at="2024-12-05T20:46:02 CET" name="tearDown" finished-at="2024-12-05T20:46:07 CET" duration-ms="5363" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+      </class> <!-- MavenProject.testingandlearning.DynamicUIComponentsTest -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
+</testng-results>
