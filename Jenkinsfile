@@ -1,24 +1,20 @@
-
 pipeline {
   agent { label 'docker-agent-02' }
+
   environment {
     IMAGE_NAME     = 'testing-docker'
-    GIT_CRED_ID    = '6fd9cc57-f5b4-4cde-992b94102d3b'
     DOCKER_CRED_ID = 'DockerHub-Identifier'
     REGISTRY_URL   = 'https://registry.hub.docker.com'
   }
+
   stages {
-    stage('Checkout') {
-      steps {
-        git url: 'https://github.com/0gan333/testingandlearning.git',
-            credentialsId: "${GIT_CRED_ID}"
-      }
-    }
     stage('Build Docker Image') {
       steps {
+        // Workspace root already contains Dockerfile
         bat "docker build -t %IMAGE_NAME% ."
       }
     }
+
     stage('Run TestNG Suite') {
       steps {
         bat """
@@ -32,6 +28,7 @@ pipeline {
         }
       }
     }
+
     stage('Push Image to Docker Hub') {
       when { branch 'master' }
       steps {
@@ -49,8 +46,9 @@ pipeline {
       }
     }
   }
+
   post {
-    success { echo '? CI pipeline completed successfully!' }
-    failure { echo '? CI pipeline failed-check the logs.' }
+    success { echo '✅ CI pipeline completed successfully!' }
+    failure { echo '❌ CI pipeline failed—check the logs.' }
   }
 }
