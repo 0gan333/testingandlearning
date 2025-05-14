@@ -8,15 +8,37 @@ pipeline {
   }
 
   stages {
+    stage('Checkout') {
+      steps {
+        // Pulls your ci-setup branch and Jenkinsfile from GitHub
+        git url: 'https://github.com/0gan333/testingandlearning.git', credentialsId: 'GitHub-access-for-Jenkins', branch: 'ci-setup'
+      }
+    }
+
     stage('Build Docker Image') {
       steps {
-        // Workspace root already contains Dockerfile
+        // Build the image; your Dockerfile will COPY both entrypoint.sh and the project
         bat "docker build -t %IMAGE_NAME% ."
+      }
+    }
+
+    stage('Install External JAR') {
+      steps {
+        // Install the missing seleniumUpgrade-0.0.1-SNAPSHOT.jar into the image’s local repo
+        sh """
+          docker run --rm %IMAGE_NAME% mvn install:install-file \
+            -DgroupId=AutomatSE \
+            -DartifactId=seleniumUpgrade \
+            -Dversion=0.0.1-SNAPSHOT \
+            -Dpackaging=jar \
+            -Dfile=/app/path/to/seleniumUpgrade-0.0.1-SNAPSHOT.jar
+        """
       }
     }
 
     stage('Run TestNG Suite') {
       steps {
+        // Run the entire TestNG suite inside Docker (including your failing test)
         bat """
           docker run --rm -v "%WORKSPACE%:/app" %IMAGE_NAME% ^
             mvn clean test -Dgroups="!known-issues" -Dwdm.chromeDriverVersion=134.0.6998.165 -Dheadless=true
@@ -24,6 +46,7 @@ pipeline {
       }
       post {
         always {
+          // Archive JUnit XML results so you see your “1 failing test” log
           junit '**\\target\\surefire-reports\\*.xml'
         }
       }
