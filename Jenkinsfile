@@ -10,43 +10,45 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        // Pulls your ci-setup branch and Jenkinsfile from GitHub
-        git url: 'https://github.com/0gan333/testingandlearning.git', credentialsId: 'GitHub-access-for-Jenkins', branch: 'ci-setup'
-      }
-    }
-
-    stage('Build Docker Image') {
-      steps {
-        // Build the image; your Dockerfile will COPY both entrypoint.sh and the project
-        bat "docker build -t %IMAGE_NAME% ."
+        bat """
+          E:\\GIT\\Git\\Git\\mingw64\\bin\\git.exe clone ^
+            -b ci-setup ^
+            https://github.com/0gan333/testingandlearning.git .
+        """
       }
     }
 
     stage('Install External JAR') {
       steps {
-        // Install the missing seleniumUpgrade-0.0.1-SNAPSHOT.jar into the image’s local repo
-        sh """
-          docker run --rm %IMAGE_NAME% mvn install:install-file \
-            -DgroupId=AutomatSE \
-            -DartifactId=seleniumUpgrade \
-            -Dversion=0.0.1-SNAPSHOT \
-            -Dpackaging=jar \
-            -Dfile=/app/path/to/seleniumUpgrade-0.0.1-SNAPSHOT.jar
+        bat """
+          mvn install:install-file ^
+            -DgroupId=AutomatSE ^
+            -DartifactId=seleniumUpgrade ^
+            -Dversion=0.0.1-SNAPSHOT ^
+            -Dpackaging=jar ^
+            -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar"
         """
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        bat "docker build -t %IMAGE_NAME% ."
       }
     }
 
     stage('Run TestNG Suite') {
       steps {
-        // Run the entire TestNG suite inside Docker (including your failing test)
         bat """
-          docker run --rm -v "%WORKSPACE%:/app" %IMAGE_NAME% ^
+          docker run --rm ^
+            -v "%WORKSPACE%:/app" ^
+            -v "%USERPROFILE%\\.m2:/root/.m2:ro" ^
+            %IMAGE_NAME% ^
             mvn clean test -Dgroups="!known-issues" -Dwdm.chromeDriverVersion=134.0.6998.165 -Dheadless=true
         """
       }
       post {
         always {
-          // Archive JUnit XML results so you see your “1 failing test” log
           junit '**\\target\\surefire-reports\\*.xml'
         }
       }
