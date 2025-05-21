@@ -10,11 +10,8 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        bat """
-          E:\\GIT\\Git\\Git\\mingw64\\bin\\git.exe clone ^
-            -b ci-setup ^
-            https://github.com/0gan333/testingandlearning.git .
-        """
+        // Use the declarative SCM checkout
+        checkout scm
       }
     }
 
