@@ -9,9 +9,12 @@ pipeline {
 
   stages {
     stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Check External JAR') {
       steps {
-        // Use the declarative SCM checkout
-        checkout scm
+        bat 'echo Listing contents of %WORKSPACE%\\lib & dir "%WORKSPACE%\\lib"'
       }
     }
 
@@ -29,9 +32,7 @@ pipeline {
     }
 
     stage('Build Docker Image') {
-      steps {
-        bat "docker build -t %IMAGE_NAME% ."
-      }
+      steps { bat "docker build -t %IMAGE_NAME% ." }
     }
 
     stage('Run TestNG Suite') {
@@ -44,11 +45,7 @@ pipeline {
             mvn clean test -Dgroups="!known-issues" -Dwdm.chromeDriverVersion=134.0.6998.165 -Dheadless=true
         """
       }
-      post {
-        always {
-          junit '**\\target\\surefire-reports\\*.xml'
-        }
-      }
+      post { always { junit '**\\target\\surefire-reports\\*.xml' } }
     }
 
     stage('Push Image to Docker Hub') {
