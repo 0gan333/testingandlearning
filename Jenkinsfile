@@ -26,7 +26,8 @@ pipeline {
             -DartifactId=seleniumUpgrade ^
             -Dversion=0.0.1-SNAPSHOT ^
             -Dpackaging=jar ^
-            -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar"
+            -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
+            -Dmaven.repo.local="%WORKSPACE%\\.m2"
         """
       }
     }
