@@ -31,6 +31,13 @@ pipeline {
       }
     }
 
+    // ← New stage to prepare a workspace‐local Maven cache
+    stage('Prepare Maven Cache') {
+      steps {
+        bat 'if not exist "%WORKSPACE%\\.m2" mkdir "%WORKSPACE%\\.m2"'
+      }
+    }
+
     stage('Build Docker Image') {
       steps { bat "docker build -t %IMAGE_NAME% ." }
     }
@@ -40,12 +47,14 @@ pipeline {
         bat """
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
-            -v "%USERPROFILE%\\.m2:/root/.m2:ro" ^
+            -v "%WORKSPACE%\\.m2:/root/.m2:ro" ^
             %IMAGE_NAME% ^
             mvn clean test -Dgroups="!known-issues" -Dwdm.chromeDriverVersion=134.0.6998.165 -Dheadless=true
         """
       }
-      post { always { junit '**\\target\\surefire-reports\\*.xml' } }
+      post {
+        always { junit '**\\target\\surefire-reports\\*.xml' }
+      }
     }
 
     stage('Push Image to Docker Hub') {
