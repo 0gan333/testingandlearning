@@ -31,15 +31,19 @@ pipeline {
       }
     }
 
-    // ← New stage to prepare a workspace‐local Maven cache
     stage('Prepare Maven Cache') {
       steps {
-        bat 'if not exist "%WORKSPACE%\\.m2" mkdir "%WORKSPACE%\\.m2"'
+        bat """
+          if not exist "%WORKSPACE%\\.m2" mkdir "%WORKSPACE%\\.m2"
+          if not exist "%WORKSPACE%\\.m2\\repository" mkdir "%WORKSPACE%\\.m2\\repository"
+        """
       }
     }
 
     stage('Build Docker Image') {
-      steps { bat "docker build -t %IMAGE_NAME% ." }
+      steps {
+        bat "docker build -t %IMAGE_NAME% ."
+      }
     }
 
     stage('Run TestNG Suite') {
@@ -47,13 +51,15 @@ pipeline {
         bat """
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
-            -v "%WORKSPACE%\\.m2:/root/.m2:ro" ^
+            -v "%WORKSPACE%\\.m2:/root/.m2" ^
             %IMAGE_NAME% ^
             mvn clean test -Dgroups="!known-issues" -Dwdm.chromeDriverVersion=134.0.6998.165 -Dheadless=true
         """
       }
       post {
-        always { junit '**\\target\\surefire-reports\\*.xml' }
+        always {
+          junit '**\\target\\surefire-reports\\*.xml'
+        }
       }
     }
 
