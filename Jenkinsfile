@@ -5,10 +5,10 @@ pipeline {
             steps {
                 script {
                     // Ensure .m2 directory exists
-                    sh 'mkdir -p "${WORKSPACE}/.m2"'
+                    bat 'mkdir -p "${WORKSPACE}/.m2"'
                     // Use a Maven Docker image to install the custom JAR into workspace-local Maven repo
                     docker.image('maven:3.8.7-eclipse-temurin-17').inside("-v ${env.WORKSPACE}/.m2:/root/.m2:rw") {
-                        sh '''
+                        bat '''
                             mvn install:install-file \
                                 -Dfile=seleniumUpgrade-0.0.1-SNAPSHOT.jar \
                                 -DgroupId=com.example \
@@ -38,7 +38,7 @@ pipeline {
                     def testImage = docker.image(env.IMAGE_NAME)
                     testImage.inside("-v ${env.WORKSPACE}/.m2:/root/.m2:rw") {
                         // Example Maven command with Chrome options to use headless and unique user-data-dir
-                        sh '''
+                        bat '''
                             mvn clean test \
                                 -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
                         '''
