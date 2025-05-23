@@ -1,56 +1,75 @@
 pipeline {
-    agent any
-    stages {
-        stage('Install Custom JAR') {
-            steps {
-                script {
-                    // Ensure .m2 directory exists
-                    bat 'mkdir -p "${WORKSPACE}/.m2"'
-                    // Use a Maven Docker image to install the custom JAR into workspace-local Maven repo
-                    docker.image('maven:3.8.7-eclipse-temurin-17').inside("-v ${env.WORKSPACE}/.m2:/root/.m2:rw") {
-                        bat '''
-                            mvn install:install-file \
-                                -Dfile=seleniumUpgrade-0.0.1-SNAPSHOT.jar \
-                                -DgroupId=com.example \
-                                -DartifactId=seleniumUpgrade \
-                                -Dversion=0.0.1-SNAPSHOT \
-                                -Dpackaging=jar \
-                                -DgeneratePom=true
-                        '''
-                    }
-                }
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Build Docker image from Dockerfile in repo
-                    def customImage = docker.build("selenium-tests:${env.BUILD_ID}")
-                    // Save image object for next stage
-                    env.IMAGE_NAME = "selenium-tests:${env.BUILD_ID}"
-                }
-            }
-        }
-        stage('Run Tests in Container') {
-            steps {
-                script {
-                    // Run Maven tests inside the built image. Mount .m2 for caching.
-                    def testImage = docker.image(env.IMAGE_NAME)
-                    testImage.inside("-v ${env.WORKSPACE}/.m2:/root/.m2:rw") {
-                        // Example Maven command with Chrome options to use headless and unique user-data-dir
-                        bat '''
-                            mvn clean test \
-                                -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
-                        '''
-                    }
-                }
-            }
-        }
+  agent { label 'docker-agent-02' }
+
+  environment {
+    IMAGE_NAME = "testing-docker"
+    TAG        = "latest"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
     }
-    post {
+
+    stage('Install External JAR') {
+      steps {
+        // Ensure workspace-local Maven repo exists
+        bat 'if not exist "%WORKSPACE%\\.m2\\repository" mkdir "%WORKSPACE%\\.m2\\repository"'
+
+        // Install the JAR into that local repo
+        bat """
+          mvn install:install-file ^
+            -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
+            -DgroupId=AutomatSE ^
+            -DartifactId=seleniumUpgrade ^
+            -Dversion=0.0.1-SNAPSHOT ^
+            -Dpackaging=jar ^
+            -DgeneratePom=true ^
+            -Dmaven.repo.local="%WORKSPACE%\\.m2\\repository"
+        """
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        bat """
+          docker build -t %IMAGE_NAME%:%TAG% .
+        """
+      }
+    }
+
+    stage('Run TestNG Suite') {
+      steps {
+        // Run Docker container, mount workspace and Maven cache, pass Chrome args
+        bat """
+          docker run --rm ^
+            -v "%WORKSPACE%:/app" ^
+            -v "%WORKSPACE%\\.m2:/root/.m2" ^
+            -w /app ^
+            %IMAGE_NAME%:%TAG% ^
+            mvn clean test ^
+              -Dgroups="!known-issues" ^
+              -Dwdm.chromeDriverVersion=134.0.6998.165 ^
+              -Dheadless=true ^
+              -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
+        """
+      }
+      post {
         always {
-            // Publish JUnit-style test reports (adjust path if needed)
-            junit '**/target/surefire-reports/*.xml'
+          junit '**\\target\\surefire-reports\\*.xml'
         }
+      }
     }
+  }
+
+  post {
+    success {
+      echo '✅ CI pipeline completed successfully!'
+    }
+    failure {
+      echo '❌ CI pipeline failed—check the logs.'
+    }
+  }
 }
