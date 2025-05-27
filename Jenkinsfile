@@ -9,9 +9,7 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps {
-        checkout scm
-      }
+      steps { checkout scm }
     }
 
     stage('Install External JAR') {
@@ -31,9 +29,7 @@ pipeline {
     }
 
     stage('Build Docker Image') {
-      steps {
-        bat 'docker build -t %IMAGE_NAME%:%TAG% .'
-      }
+      steps { bat 'docker build -t %IMAGE_NAME%:%TAG% .' }
     }
 
     stage('Run Only That One Test') {
@@ -49,7 +45,7 @@ pipeline {
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
               -Dheadless=true ^
-              -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage"
+              -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-profile-${BUILD_ID}"
         """
       }
       post {
@@ -61,11 +57,7 @@ pipeline {
   }
 
   post {
-    success {
-      echo '✅ CI pipeline completed successfully!'
-    }
-    failure {
-      echo '❌ CI pipeline failed—check the logs.'
-    }
+    success { echo '✅ CI pipeline completed successfully!' }
+    failure { echo '❌ CI pipeline failed—check the logs.' }
   }
 }
