@@ -33,7 +33,7 @@ pipeline {
       }
     }
 
-    stage('Run Single Test') {
+    stage('Run Single Test Only') {
       steps {
         bat """
           docker run --rm ^
@@ -42,6 +42,7 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean surefire:test ^
+              -Dsurefire.suiteXmlFiles= ^
               -Dtest=DynamicUIComponentsTest ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dheadless=true ^
@@ -49,7 +50,9 @@ pipeline {
         """
       }
       post {
-        always { junit '**\\target\\surefire-reports\\*.xml' }
+        always {
+          junit '**\\target\\surefire-reports\\*.xml'
+        }
       }
     }
   }
