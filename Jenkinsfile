@@ -2,10 +2,9 @@ pipeline {
   agent { label 'docker-agent-02' }
 
   environment {
-    IMAGE_NAME = "testing-docker"
-    TAG        = "latest"
-    // The one test class you want
-    SINGLE_TEST = "DynamicUIComponentsTest"
+    IMAGE_NAME   = "testing-docker"
+    TAG          = "latest"
+    SINGLE_TEST  = "DynamicUIComponentsTest"
   }
 
   stages {
@@ -48,6 +47,7 @@ pipeline {
             mvn clean test ^
               -Dtest=%SINGLE_TEST% ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
+              -Dwdm.offline=true ^
               -Dheadless=true ^
               -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
         """
