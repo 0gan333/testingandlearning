@@ -8,7 +8,9 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        checkout scm
+      }
     }
 
     stage('Install External JAR') {
@@ -33,7 +35,26 @@ pipeline {
       }
     }
 
-    stage('Run Single Test Only') {
+    stage('Generate Single-Test Suite') {
+      steps {
+        // Create a TestNG XML that runs ONLY the one class we care about
+        bat """
+          (
+            echo ^<?xml version="1.0" encoding="UTF-8"?^> 
+            echo ^<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd"^>
+            echo ^<suite name="SingleTestSuite"^>
+            echo   ^<test name="RunOnlyDynamicUIComponents"^>
+            echo     ^<classes^>
+            echo       ^<class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/^>
+            echo     ^</classes^>
+            echo   ^</test^>
+            echo ^</suite^>
+          ) > single-testng.xml
+        """
+      }
+    }
+
+    stage('Run Only That One Test') {
       steps {
         bat """
           docker run --rm ^
@@ -41,9 +62,8 @@ pipeline {
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
-            mvn clean surefire:test ^
-              -Dsurefire.suiteXmlFiles= ^
-              -Dtest=DynamicUIComponentsTest ^
+            mvn clean test ^
+              -Dsurefire.suiteXmlFiles=single-testng.xml ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dheadless=true ^
               -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
