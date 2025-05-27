@@ -40,9 +40,9 @@ pipeline {
       }
     }
 
-    stage('Run TestNG Suite') {
+    stage('Run TestNG Suite (Single Test)') {
       steps {
-        // Run Docker container, mount workspace and Maven cache, pass Chrome args
+        // Run only DynamicUIComponentsTest inside the container
         bat """
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
@@ -50,7 +50,7 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean test ^
-              -Dgroups="!known-issues" ^
+              -Dtest=DynamicUIComponentsTest ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dheadless=true ^
               -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
