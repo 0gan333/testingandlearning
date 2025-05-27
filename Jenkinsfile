@@ -8,17 +8,12 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps {
-        checkout scm
-      }
+      steps { checkout scm }
     }
 
     stage('Install External JAR') {
       steps {
-        // Ensure workspace-local Maven repo exists
         bat 'if not exist "%WORKSPACE%\\.m2\\repository" mkdir "%WORKSPACE%\\.m2\\repository"'
-
-        // Install the JAR into that local repo
         bat """
           mvn install:install-file ^
             -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
@@ -34,22 +29,19 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        bat """
-          docker build -t %IMAGE_NAME%:%TAG% .
-        """
+        bat 'docker build -t %IMAGE_NAME%:%TAG% .'
       }
     }
 
-    stage('Run TestNG Suite (Single Test)') {
+    stage('Run Single Test') {
       steps {
-        // Run only DynamicUIComponentsTest inside the container
         bat """
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
-            mvn clean test ^
+            mvn clean surefire:test ^
               -Dtest=DynamicUIComponentsTest ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dheadless=true ^
@@ -57,19 +49,13 @@ pipeline {
         """
       }
       post {
-        always {
-          junit '**\\target\\surefire-reports\\*.xml'
-        }
+        always { junit '**\\target\\surefire-reports\\*.xml' }
       }
     }
   }
 
   post {
-    success {
-      echo '✅ CI pipeline completed successfully!'
-    }
-    failure {
-      echo '❌ CI pipeline failed—check the logs.'
-    }
+    success { echo '✅ CI pipeline completed successfully!' }
+    failure { echo '❌ CI pipeline failed—check the logs.' }
   }
 }
