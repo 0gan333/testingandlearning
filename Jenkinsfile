@@ -4,6 +4,8 @@ pipeline {
   environment {
     IMAGE_NAME = "testing-docker"
     TAG        = "latest"
+    // The one test class you want
+    SINGLE_TEST = "DynamicUIComponentsTest"
   }
 
   stages {
@@ -35,25 +37,6 @@ pipeline {
       }
     }
 
-    stage('Generate Single-Test Suite') {
-      steps {
-        // Create a TestNG XML that runs ONLY the one class we care about
-        bat """
-          (
-            echo ^<?xml version="1.0" encoding="UTF-8"?^> 
-            echo ^<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd"^>
-            echo ^<suite name="SingleTestSuite"^>
-            echo   ^<test name="RunOnlyDynamicUIComponents"^>
-            echo     ^<classes^>
-            echo       ^<class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/^>
-            echo     ^</classes^>
-            echo   ^</test^>
-            echo ^</suite^>
-          ) > single-testng.xml
-        """
-      }
-    }
-
     stage('Run Only That One Test') {
       steps {
         bat """
@@ -63,7 +46,7 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean test ^
-              -Dsurefire.suiteXmlFiles=single-testng.xml ^
+              -Dtest=%SINGLE_TEST% ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dheadless=true ^
               -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-user-data"
@@ -78,7 +61,11 @@ pipeline {
   }
 
   post {
-    success { echo '✅ CI pipeline completed successfully!' }
-    failure { echo '❌ CI pipeline failed—check the logs.' }
+    success {
+      echo '✅ CI pipeline completed successfully!'
+    }
+    failure {
+      echo '❌ CI pipeline failed—check the logs.'
+    }
   }
 }
