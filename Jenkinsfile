@@ -2,14 +2,15 @@ pipeline {
   agent { label 'docker-agent-02' }
 
   environment {
-    IMAGE_NAME  = "testing-docker"
-    TAG         = "latest"
-    SINGLE_TEST = "DynamicUIComponentsTest"
+    IMAGE_NAME = "testing-docker"
+    TAG        = "latest"
   }
 
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        checkout scm
+      }
     }
 
     stage('Install External JAR') {
@@ -30,7 +31,7 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        bat 'docker build -t %IMAGE_NAME%:%TAG% .'
+        bat "docker build -t %IMAGE_NAME%:%TAG% ."
       }
     }
 
@@ -43,8 +44,7 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean test ^
-              -Dsurefire.suiteXmlFiles= ^
-              -Dtest=%SINGLE_TEST% ^
+              -Dtest=DynamicUIComponentsTest ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
               -Dheadless=true ^
@@ -60,11 +60,7 @@ pipeline {
   }
 
   post {
-    success {
-      echo '✅ CI pipeline completed successfully!'
-    }
-    failure {
-      echo '❌ CI pipeline failed—check the logs.'
-    }
+    success { echo '✅ CI pipeline completed successfully!' }
+    failure { echo '❌ CI pipeline failed—check the logs.' }
   }
 }
