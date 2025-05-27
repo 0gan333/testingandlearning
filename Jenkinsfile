@@ -29,7 +29,9 @@ pipeline {
     }
 
     stage('Build Docker Image') {
-      steps { bat 'docker build -t %IMAGE_NAME%:%TAG% .' }
+      steps {
+        bat 'docker build -t %IMAGE_NAME%:%TAG% .'
+      }
     }
 
     stage('Run Only That One Test') {
@@ -41,6 +43,7 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean test ^
+              -Dsurefire.suiteXmlFiles= ^
               -Dtest=%SINGLE_TEST% ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
@@ -57,7 +60,11 @@ pipeline {
   }
 
   post {
-    success { echo '✅ CI pipeline completed successfully!' }
-    failure { echo '❌ CI pipeline failed—check the logs.' }
+    success {
+      echo '✅ CI pipeline completed successfully!'
+    }
+    failure {
+      echo '❌ CI pipeline failed—check the logs.'
+    }
   }
 }
