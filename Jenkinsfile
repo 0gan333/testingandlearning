@@ -58,6 +58,7 @@ pipeline {
       }
       post {
         always {
+          // Collect JUnit/Surefire reports so Jenkins can show pass/fail details
           junit '**\\target\\surefire-reports\\*.xml'
         }
       }
