@@ -8,12 +8,17 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        checkout scm
+      }
     }
 
     stage('Install External JAR') {
       steps {
+        // If workspace-local ~/.m2 doesn't exist, create it
         bat 'if not exist "%WORKSPACE%\\.m2\\repository" mkdir "%WORKSPACE%\\.m2\\repository"'
+
+        // Install your custom Selenium JAR into that local repo
         bat """
           mvn install:install-file ^
             -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
@@ -36,11 +41,8 @@ pipeline {
     stage('Run Only DynamicUIComponentsTest') {
       steps {
         /*
-         * 1) Ensure no testng.xml exists anywhere in the workspace.
-         * 2) Run Maven with:
-         *    -Dsurefire.suiteXmlFiles=      ← clears any suite
-         *    -Dtest=…                        ← picks only one test class
-         *    -Dchrome.args="…--user-data-dir=/tmp/chrome-$BUILD_NUMBER"
+         * Instead of “mvn clean test …”, we invoke “mvn clean surefire:test …”
+         * so that Surefire runs only the specified test class and never auto-generates a full TestNG suite.
          */
         bat """
           docker run --rm ^
@@ -48,8 +50,7 @@ pipeline {
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
-            mvn clean test ^
-              -Dsurefire.suiteXmlFiles= ^
+            mvn clean surefire:test ^
               -Dtest=MavenProject.testingandlearning.DynamicUIComponentsTest ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
@@ -59,6 +60,7 @@ pipeline {
       }
       post {
         always {
+          // Publish only the DynamicUIComponentsTest results (Surefire writes them to target/surefire-reports)
           junit '**\\target\\surefire-reports\\*.xml'
         }
       }
@@ -66,7 +68,11 @@ pipeline {
   }
 
   post {
-    success { echo '✅ CI pipeline completed successfully!' }
-    failure { echo '❌ CI pipeline failed—check the logs.' }
+    success {
+      echo '✅ CI pipeline completed successfully!'
+    }
+    failure {
+      echo '❌ CI pipeline failed—check the logs.'
+    }
   }
 }
