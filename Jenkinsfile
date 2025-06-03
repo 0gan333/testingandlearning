@@ -40,7 +40,7 @@ pipeline {
       }
     }
 
-    stage('Run Only That One Test') {
+    stage('Run Only DynamicUIComponentsTest') {
       steps {
         bat """
           docker run --rm ^
@@ -49,7 +49,8 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean test ^
-              -Dtest=DynamicUIComponentsTest ^
+              -Dsurefire.suiteXmlFiles= ^           // ← Clear any suiteXmlFile so TestNG won’t run "TestSuite"
+              -Dtest=DynamicUIComponentsTest ^     // ← Only this class will run
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
               -Dheadless=true ^
@@ -58,7 +59,7 @@ pipeline {
       }
       post {
         always {
-          // Collect JUnit/Surefire reports so Jenkins can show pass/fail details
+          // Archive the Surefire XMLs so Jenkins reports pass/fail details
           junit '**\\target\\surefire-reports\\*.xml'
         }
       }
