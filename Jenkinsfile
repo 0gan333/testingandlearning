@@ -15,10 +15,7 @@ pipeline {
 
     stage('Install External JAR') {
       steps {
-        // If workspace-local ~/.m2 doesn't exist, create it
         bat 'if not exist "%WORKSPACE%\\.m2\\repository" mkdir "%WORKSPACE%\\.m2\\repository"'
-
-        // Install your custom Selenium JAR into that local repo
         bat """
           mvn install:install-file ^
             -Dfile="%WORKSPACE%\\lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
@@ -41,8 +38,8 @@ pipeline {
     stage('Run Only DynamicUIComponentsTest') {
       steps {
         /*
-         * Instead of “mvn clean test …”, we invoke “mvn clean surefire:test …”
-         * so that Surefire runs only the specified test class and never auto-generates a full TestNG suite.
+         * Pass -Dsurefire.suiteXmlFiles="" (empty string) so Surefire/TestNGProvider
+         * will not auto-discover any suite. Then -Dtest=<your class> forces exactly that one test.
          */
         bat """
           docker run --rm ^
@@ -51,16 +48,16 @@ pipeline {
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
             mvn clean surefire:test ^
+              -Dsurefire.suiteXmlFiles="" ^
               -Dtest=MavenProject.testingandlearning.DynamicUIComponentsTest ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
               -Dheadless=true ^
-              -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/chrome-%BUILD_NUMBER"
+              -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage"
         """
       }
       post {
         always {
-          // Publish only the DynamicUIComponentsTest results (Surefire writes them to target/surefire-reports)
           junit '**\\target\\surefire-reports\\*.xml'
         }
       }
