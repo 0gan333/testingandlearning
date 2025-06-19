@@ -1,0 +1,13 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="DynamicUIComponentsTestSuite" verbose="1" parallel="false">
+    <test name="Run Only DynamicUIComponentsTest - Exclude Known Issues">
+        <groups>
+            <run>
+                <exclude name="known-issues"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/>
+        </classes>
+    </test>
+</suite>

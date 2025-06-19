@@ -59,11 +59,10 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0</version>
         <configuration>
-          <!-- never auto-load any TestNG suites -->
-          <suiteXmlFiles/>
-          <includes>
-            <include>**/*Test.java</include>
-          </includes>
+          <!-- Only run what's in testng.xml -->
+          <suiteXmlFiles>
+            <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+          </suiteXmlFiles>
         </configuration>
       </plugin>
     </plugins>

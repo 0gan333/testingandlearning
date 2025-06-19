@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Failed suite [DynamicUIComponentsTestSuite]" guice-stage="DEVELOPMENT" verbose="0">
+  <test thread-count="5" name="Run Only DynamicUIComponentsTest - Exclude Known Issues(failed)" verbose="0">
+    <groups>
+      <run>
+        <exclude name="known-issues"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="MavenProject.testingandlearning.DynamicUIComponentsTest">
+        <methods>
+          <include name="afterMethod"/>
+          <include name="setup"/>
+          <include name="tearDown"/>
+          <include name="selectDrillAndSetQuantity"/>
+        </methods>
+      </class> <!-- MavenProject.testingandlearning.DynamicUIComponentsTest -->
+    </classes>
+  </test> <!-- Run Only DynamicUIComponentsTest - Exclude Known Issues(failed) -->
+</suite> <!-- Failed suite [DynamicUIComponentsTestSuite] -->
