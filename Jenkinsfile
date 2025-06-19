@@ -37,11 +37,6 @@ pipeline {
 
     stage('Run Only DynamicUIComponentsTest') {
       steps {
-        /*
-         * 1. Create dynamic-suite.xml in the workspace. It names exactly one TestNG class.
-         * 2. Mount the entire workspace into Docker, so dynamic-suite.xml appears at /app/dynamic-suite.xml.
-         * 3. Invoke mvn clean surefire:test -Dsurefire.suiteXmlFiles=dynamic-suite.xml.
-         */
         bat """
           rem — create a minimal TestNG suite that runs only DynamicUIComponentsTest
           >dynamic-suite.xml echo ^<?xml version="1.0" encoding="UTF-8"?^>
@@ -59,12 +54,12 @@ pipeline {
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
             -w /app ^
             %IMAGE_NAME%:%TAG% ^
-            mvn clean surefire:test ^
+            cmd /c "rmdir /s /q target && mvn clean surefire:test ^
               -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
               -Dheadless=true ^
-              -Dchrome.args="--headless --no-sandbox --disable-dev-shm-usage"
+              -Dchrome.args=\\\"--headless --no-sandbox --disable-dev-shm-usage\\\""
         """
       }
       post {
