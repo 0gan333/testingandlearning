@@ -38,16 +38,15 @@ pipeline {
     stage('Run Only DynamicUIComponentsTest') {
       steps {
         bat """
-          rem — create a minimal TestNG suite that runs only DynamicUIComponentsTest
-          >dynamic-suite.xml echo ^<?xml version="1.0" encoding="UTF-8"?^>
-          >>dynamic-suite.xml echo ^<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd"^>
-          >>dynamic-suite.xml echo ^<suite name="SingleTestSuite"^>
-          >>dynamic-suite.xml echo   ^<test name="SingleTest"^>
-          >>dynamic-suite.xml echo     ^<classes^>
-          >>dynamic-suite.xml echo       ^<class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/^>
-          >>dynamic-suite.xml echo     ^</classes^>
-          >>dynamic-suite.xml echo   ^</test^>
-          >>dynamic-suite.xml echo ^</suite^>
+          echo ^<?xml version="1.0" encoding="UTF-8"?^> > dynamic-suite.xml
+          echo ^<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd"^> >> dynamic-suite.xml
+          echo ^<suite name="SingleTestSuite"^> >> dynamic-suite.xml
+          echo   ^<test name="SingleTest"^> >> dynamic-suite.xml
+          echo     ^<classes^> >> dynamic-suite.xml
+          echo       ^<class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/^> >> dynamic-suite.xml
+          echo     ^</classes^> >> dynamic-suite.xml
+          echo   ^</test^> >> dynamic-suite.xml
+          echo ^</suite^> >> dynamic-suite.xml
 
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
@@ -59,7 +58,7 @@ pipeline {
               -Dwdm.chromeDriverVersion=134.0.6998.165 ^
               -Dwdm.offline=true ^
               -Dheadless=true ^
-              -Dchrome.args=\\\"--headless --no-sandbox --disable-dev-shm-usage\\\""
+              -Dchrome.args=\"--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=/tmp/unique-profile\""
         """
       }
       post {
