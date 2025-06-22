@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
-        _JAVA_OPTIONS = '-Dwebdriver.chrome.userDataDir=/tmp/profile-jenkins-ci'
     }
 
     stages {
@@ -45,14 +44,14 @@ pipeline {
                         -v "%CD%:/app" ^
                         -v "%CD%\\.m2:/root/.m2" ^
                         -w /app ^
-                        -e "_JAVA_OPTIONS=%_JAVA_OPTIONS%" ^
                         testing-docker:latest ^
                         cmd /c "mvn clean surefire:test ^
                             -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
                             -Dwdm.chromeDriverVersion=134.0.6998.165 ^
                             -Dwdm.offline=true ^
                             -Dheadless=true ^
-                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage"
+                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
+                            -Dwebdriver.chrome.userDataDir=/tmp/jenkins-profile"
                     '''
                 }
             }
