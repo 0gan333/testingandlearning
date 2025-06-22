@@ -42,15 +42,19 @@ pipeline {
           def chromeProfile = "/tmp/profile-${UUID.randomUUID().toString()}"
 
           bat '''
-            echo ^<?xml version="1.0" encoding="UTF-8"?^> > dynamic-suite.xml
-            echo ^<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd"^> >> dynamic-suite.xml
-            echo ^<suite name="SingleTestSuite"^> >> dynamic-suite.xml
-            echo ^  <test name="SingleTest"^> >> dynamic-suite.xml
-            echo ^    <classes>^> >> dynamic-suite.xml
-            echo ^      <class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/> >> dynamic-suite.xml
-            echo ^    </classes>^> >> dynamic-suite.xml
-            echo ^  </test>^> >> dynamic-suite.xml
-            echo ^</suite>^> >> dynamic-suite.xml
+            powershell -Command ^
+              "$xml = @' ^
+<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?> ^
+<!DOCTYPE suite SYSTEM \\"http://testng.org/testng-1.0.dtd\\"> ^
+<suite name=\\"SingleTestSuite\\"> ^
+  <test name=\\"SingleTest\\"> ^
+    <classes> ^
+      <class name=\\"MavenProject.testingandlearning.DynamicUIComponentsTest\\"/> ^
+    </classes> ^
+  </test> ^
+</suite> ^
+'@; ^
+              Set-Content -Path dynamic-suite.xml -Value $xml"
           '''
 
           bat """
