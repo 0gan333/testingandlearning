@@ -40,7 +40,8 @@ pipeline {
                 script {
                     bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
-                    bat """
+                    // ✅ All arguments wrapped inside one quoted string!
+                    bat '''
                         docker run --rm ^
                           -v "%WORKSPACE%:/app" ^
                           -v "%WORKSPACE%\\.m2:/root/.m2" ^
@@ -52,7 +53,7 @@ pipeline {
                             -Dwdm.offline=true ^
                             -Dheadless=true ^
                             -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage"
-                    """
+                    '''
                 }
             }
         }
