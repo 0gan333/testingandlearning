@@ -2,8 +2,7 @@ pipeline {
     agent { label 'docker-agent-02' }
 
     environment {
-        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
-        _JAVA_OPTIONS = '-Dwebdriver.chrome.userDataDir='
+        MAVEN_OPTS = '-Dwebdriver.chrome.userDataDir='
     }
 
     stages {
@@ -39,20 +38,19 @@ pipeline {
             steps {
                 script {
                     bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
-
-                    // ✅ All arguments wrapped inside one quoted string!
                     bat '''
                         docker run --rm ^
-                          -v "%WORKSPACE%:/app" ^
-                          -v "%WORKSPACE%\\.m2:/root/.m2" ^
-                          -w /app ^
-                          testing-docker:latest ^
-                          cmd /c "mvn clean surefire:test ^
+                            -v "%cd%:/app" ^
+                            -v "%cd%\\.m2:/root/.m2" ^
+                            -w /app ^
+                            testing-docker:latest ^
+                            cmd /c "mvn clean surefire:test ^
                             -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
                             -Dwdm.chromeDriverVersion=134.0.6998.165 ^
                             -Dwdm.offline=true ^
                             -Dheadless=true ^
-                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage"
+                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
+                            -DchromeOptions.args=--no-sandbox --disable-dev-shm-usage --remote-allow-origins=*"
                     '''
                 }
             }
@@ -61,7 +59,7 @@ pipeline {
 
     post {
         always {
-            junit 'target/surefire-reports/*.xml'
+            junit '**/target/surefire-reports/*.xml'
             echo '📦 CI pipeline finished.'
         }
         failure {
