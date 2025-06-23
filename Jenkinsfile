@@ -1,10 +1,9 @@
 pipeline {
-    agent {
-        label 'docker-agent-02'
-    }
+    agent { label 'docker-agent-02' }
 
     environment {
-        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
+        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        _JAVA_OPTIONS = '-Dwebdriver.chrome.userDataDir='
     }
 
     stages {
@@ -41,20 +40,19 @@ pipeline {
                 script {
                     bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
-                    bat '''
+                    bat """
                         docker run --rm ^
-                            -v "%cd%:/app" ^
-                            -v "%cd%\\.m2:/root/.m2" ^
-                            -w /app ^
-                            testing-docker:latest ^
-                            cmd /c "mvn clean surefire:test ^
-                                -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
-                                -Dwdm.chromeDriverVersion=134.0.6998.165 ^
-                                -Dwdm.offline=true ^
-                                -Dheadless=true ^
-                                -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
-                                -Dwebdriver.chrome.userDataDir=/tmp/profile-%RANDOM%"
-                    '''
+                          -v "%WORKSPACE%:/app" ^
+                          -v "%WORKSPACE%\\.m2:/root/.m2" ^
+                          -w /app ^
+                          testing-docker:latest ^
+                          cmd /c "mvn clean surefire:test ^
+                            -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
+                            -Dwdm.chromeDriverVersion=134.0.6998.165 ^
+                            -Dwdm.offline=true ^
+                            -Dheadless=true ^
+                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage"
+                    """
                 }
             }
         }
