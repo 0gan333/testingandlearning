@@ -34,13 +34,15 @@ pipeline {
             }
         }
 
-        stage('Run Only DynamicUIComponentsTest') {
+        stage('Run DynamicUIComponentsTest') {
             steps {
                 script {
-                    // Generate TestNG XML
+                    // Create suite XML dynamically
                     bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
-                    // Run test in Docker
+                    // Generate a unique profile dir for Chrome inside PowerShell
+                    def chromeProfileDir = "/tmp/profile-${env.BUILD_NUMBER}"
+
                     bat """
                     docker run --rm ^
                         -v "%CD%:/app" ^
@@ -53,7 +55,7 @@ pipeline {
                             -Dwdm.offline=true ^
                             -Dheadless=true ^
                             -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
-                            -Dwebdriver.chrome.userDataDir=/tmp/profile-%BUILD_ID%"
+                            -Dwebdriver.chrome.userDataDir=${chromeProfileDir}"
                     """
                 }
             }
