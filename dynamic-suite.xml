@@ -1,0 +1,7 @@
+<suite name="TestSuite">
+  <test name="DynamicUIComponentsTestOnly">
+    <classes>
+      <class name="MavenProject.testingandlearning.DynamicUIComponentsTest"/>
+    </classes>
+  </test>
+</suite>

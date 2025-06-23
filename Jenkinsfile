@@ -2,7 +2,7 @@ pipeline {
     agent { label 'docker-agent-02' }
 
     environment {
-        MAVEN_OPTS = '-Dwebdriver.chrome.userDataDir=/tmp/chrome-user -Dheadless=true -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage -DchromeOptions.args=--no-sandbox --disable-dev-shm-usage --remote-allow-origins=*'
+        MAVEN_REPO_LOCAL = '.m2/repository'
     }
 
     stages {
@@ -14,17 +14,17 @@ pipeline {
 
         stage('Install External JAR') {
             steps {
-                bat '''
-                    if not exist ".m2\\repository" mkdir ".m2\\repository"
+                bat """
+                    if not exist "%MAVEN_REPO_LOCAL%" mkdir "%MAVEN_REPO_LOCAL%"
                     mvn install:install-file ^
-                        -Dfile="lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
+                        -Dfile=lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar ^
                         -DgroupId=AutomatSE ^
                         -DartifactId=seleniumUpgrade ^
                         -Dversion=0.0.1-SNAPSHOT ^
                         -Dpackaging=jar ^
                         -DgeneratePom=true ^
-                        -Dmaven.repo.local=".m2/repository"
-                '''
+                        -Dmaven.repo.local=%MAVEN_REPO_LOCAL%
+                """
             }
         }
 
@@ -44,7 +44,7 @@ pipeline {
                         -v "%cd%\\.m2:/root/.m2" ^
                         -w /app ^
                         testing-docker:latest ^
-                        bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean surefire:test -Dsurefire.suiteXmlFiles=dynamic-suite.xml %MAVEN_OPTS%"
+                        bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dsurefire.suiteXmlFiles=dynamic-suite.xml -Dheadless=true -Dwebdriver.chrome.userDataDir=/tmp/chrome-user -Dchrome.args=--headless,--no-sandbox,--disable-dev-shm-usage --no-transfer-progress"
                 '''
             }
         }
@@ -74,7 +74,7 @@ pipeline {
             junit '**/target/surefire-reports/*.xml'
         }
         success {
-            echo '📦 CI pipeline finished successfully.'
+            echo '✅ CI pipeline finished successfully.'
         }
         failure {
             echo '❌ CI pipeline failed — check the logs.'
