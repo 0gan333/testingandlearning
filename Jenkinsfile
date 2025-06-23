@@ -37,11 +37,11 @@ pipeline {
         stage('Run Only DynamicUIComponentsTest') {
             steps {
                 script {
-                    // Generate a minimal suite for TestNG to run just one class
+                    // Generate TestNG XML
                     bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
-                    // Run the Docker container with required TestNG test suite and Chrome args
-                    bat '''
+                    // Run test in Docker
+                    bat """
                     docker run --rm ^
                         -v "%CD%:/app" ^
                         -v "%CD%\\.m2:/root/.m2" ^
@@ -52,8 +52,9 @@ pipeline {
                             -Dwdm.chromeDriverVersion=134.0.6998.165 ^
                             -Dwdm.offline=true ^
                             -Dheadless=true ^
-                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage"
-                    '''
+                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
+                            -Dwebdriver.chrome.userDataDir=/tmp/profile-%BUILD_ID%"
+                    """
                 }
             }
         }
