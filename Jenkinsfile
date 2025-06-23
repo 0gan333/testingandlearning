@@ -1,8 +1,10 @@
 pipeline {
-    agent { label 'docker-agent-02' }
+    agent {
+        label 'docker-agent-02'
+    }
 
     environment {
-        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        MAVEN_OPTS = "-Dmaven.repo.local=.m2/repository"
     }
 
     stages {
@@ -15,15 +17,15 @@ pipeline {
         stage('Install External JAR') {
             steps {
                 bat '''
-                if not exist ".m2\\repository" mkdir ".m2\\repository"
-                mvn install:install-file ^
-                    -Dfile="lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
-                    -DgroupId=AutomatSE ^
-                    -DartifactId=seleniumUpgrade ^
-                    -Dversion=0.0.1-SNAPSHOT ^
-                    -Dpackaging=jar ^
-                    -DgeneratePom=true ^
-                    -Dmaven.repo.local=".m2/repository"
+                    if not exist ".m2\\repository" mkdir ".m2\\repository"
+                    mvn install:install-file ^
+                        -Dfile="lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar" ^
+                        -DgroupId=AutomatSE ^
+                        -DartifactId=seleniumUpgrade ^
+                        -Dversion=0.0.1-SNAPSHOT ^
+                        -Dpackaging=jar ^
+                        -DgeneratePom=true ^
+                        -Dmaven.repo.local=".m2/repository"
                 '''
             }
         }
@@ -37,26 +39,22 @@ pipeline {
         stage('Run DynamicUIComponentsTest') {
             steps {
                 script {
-                    // Create suite XML dynamically
                     bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
-                    // Generate a unique profile dir for Chrome inside PowerShell
-                    def chromeProfileDir = "/tmp/profile-${env.BUILD_NUMBER}"
-
-                    bat """
-                    docker run --rm ^
-                        -v "%CD%:/app" ^
-                        -v "%CD%\\.m2:/root/.m2" ^
-                        -w /app ^
-                        testing-docker:latest ^
-                        cmd /c "mvn clean surefire:test ^
-                            -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
-                            -Dwdm.chromeDriverVersion=134.0.6998.165 ^
-                            -Dwdm.offline=true ^
-                            -Dheadless=true ^
-                            -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
-                            -Dwebdriver.chrome.userDataDir=${chromeProfileDir}"
-                    """
+                    bat '''
+                        docker run --rm ^
+                            -v "%cd%:/app" ^
+                            -v "%cd%\\.m2:/root/.m2" ^
+                            -w /app ^
+                            testing-docker:latest ^
+                            cmd /c "mvn clean surefire:test ^
+                                -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
+                                -Dwdm.chromeDriverVersion=134.0.6998.165 ^
+                                -Dwdm.offline=true ^
+                                -Dheadless=true ^
+                                -Dchrome.args=--headless --no-sandbox --disable-dev-shm-usage ^
+                                -Dwebdriver.chrome.userDataDir=/tmp/profile-%RANDOM%"
+                    '''
                 }
             }
         }
