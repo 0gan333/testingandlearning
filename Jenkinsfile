@@ -39,19 +39,21 @@ pipeline {
                 bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
                 script {
-                    // Generate a random profile directory name for Chrome to avoid user-data-dir conflict
-                    def rand = new Random().nextInt(100000)
-                    env._JAVA_OPTIONS = "-Dwebdriver.chrome.userDataDir=/tmp/jenkins-profile-${rand}"
-                }
+                    // Generate a unique Chrome user-data-dir path
+                    def chromeProfileDir = "/tmp/chrome-profile-${new Random().nextInt(99999)}"
 
-                bat '''
-                    docker run --rm ^
-                        -v "%cd%:/app" ^
-                        -v "%cd%\\.m2:/root/.m2" ^
-                        -w /app ^
-                        testing-docker:latest ^
-                        bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dsurefire.suiteXmlFiles=dynamic-suite.xml -Dheadless=true --no-transfer-progress"
-                '''
+                    // Compose the Docker command using that path
+                    def testCmd = """
+                        docker run --rm ^
+                            -v "%cd%:/app" ^
+                            -v "%cd%\\.m2:/root/.m2" ^
+                            -w /app ^
+                            testing-docker:latest ^
+                            bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dheadless=true -Dchrome.userDataDir=${chromeProfileDir} -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
+                    """
+
+                    bat testCmd
+                }
             }
         }
 
