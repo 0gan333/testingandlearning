@@ -44,7 +44,7 @@ pipeline {
                         -v "%cd%\\.m2:/root/.m2" ^
                         -w /app ^
                         testing-docker:latest ^
-                        bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dsurefire.suiteXmlFiles=dynamic-suite.xml -Dheadless=true -Dwebdriver.chrome.userDataDir=/tmp/chrome-user -Dchrome.args=--headless,--no-sandbox,--disable-dev-shm-usage --no-transfer-progress"
+                        bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dsurefire.suiteXmlFiles=dynamic-suite.xml -Dheadless=true --no-transfer-progress"
                 '''
             }
         }
