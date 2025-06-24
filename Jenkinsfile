@@ -38,6 +38,12 @@ pipeline {
             steps {
                 bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
+                script {
+                    // Generate a random profile directory name for Chrome to avoid user-data-dir conflict
+                    def rand = new Random().nextInt(100000)
+                    env._JAVA_OPTIONS = "-Dwebdriver.chrome.userDataDir=/tmp/jenkins-profile-${rand}"
+                }
+
                 bat '''
                     docker run --rm ^
                         -v "%cd%:/app" ^
