@@ -36,19 +36,24 @@ pipeline {
 
         stage('Run DynamicUIComponentsTest') {
             steps {
+                // 1. Generate the suite XML
                 bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
+                // 2. Inject a unique profile dir into Jenkins env, then pass it into Docker
                 script {
-                    def dockerCommand = '''
-                        docker run --rm ^
-                            -v "%cd%:/app" ^
-                            -v "%cd%\\.m2:/root/.m2" ^
-                            -w /app ^
-                            --env _JAVA_OPTIONS="-Dwebdriver.chrome.userDataDir=/tmp/chrome-profile-%BUILD_NUMBER%" ^
-                            testing-docker:latest ^
-                            bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
-                    '''
-                    bat dockerCommand
+                    // Build‐specific Chrome profile path
+                    def profile = "/tmp/jenkins-chrome-${env.BUILD_NUMBER}"
+                    withEnv(["_JAVA_OPTIONS=-Dwebdriver.chrome.userDataDir=${profile}"]) {
+                        bat """
+                            docker run --rm ^
+                                -v "%cd%:/app" ^
+                                -v "%cd%\\.m2:/root/.m2" ^
+                                -w /app ^
+                                -e _JAVA_OPTIONS ^
+                                testing-docker:latest ^
+                                bash -c "Xvfb :99 & export DISPLAY=:99 && echo \"Picked up _JAVA_OPTIONS: \$_JAVA_OPTIONS\" && mvn clean test -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
+                        """
+                    }
                 }
             }
         }
@@ -60,14 +65,14 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'github-push', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                    bat '''
+                    bat """
                         git config user.email "ci-bot@example.com"
                         git config user.name "ci-bot"
                         git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/0gan333/testingandlearning.git
                         git add Jenkinsfile
-                        git commit -m "✅ Jenkinsfile: Unique Chrome profile per build via _JAVA_OPTIONS"
+                        git commit -m "✅ Jenkinsfile: Pass unique Chrome profile via _JAVA_OPTIONS"
                         git push origin ci-setup
-                    '''
+                    """
                 }
             }
         }
