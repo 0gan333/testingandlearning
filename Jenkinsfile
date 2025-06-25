@@ -1,92 +1,40 @@
 pipeline {
-    agent { label 'docker-agent-02' }
-
-    environment {
-        MAVEN_REPO_LOCAL = '.m2/repository'
+  agent any
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
     }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Install External JAR') {
-            steps {
-                bat """
-                    if not exist "%MAVEN_REPO_LOCAL%" mkdir "%MAVEN_REPO_LOCAL%"
-                    mvn install:install-file ^
-                        -Dfile=lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar ^
-                        -DgroupId=AutomatSE ^
-                        -DartifactId=seleniumUpgrade ^
-                        -Dversion=0.0.1-SNAPSHOT ^
-                        -Dpackaging=jar ^
-                        -DgeneratePom=true ^
-                        -Dmaven.repo.local=%MAVEN_REPO_LOCAL%
-                """
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                bat 'docker build -t testing-docker:latest .'
-            }
-        }
-
-        stage('Run DynamicUIComponentsTest') {
-            steps {
-                // 1. Generate the suite XML
-                bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
-
-                // 2. Inject a unique profile dir into Jenkins env, then pass it into Docker
-                script {
-                    // Build‐specific Chrome profile path
-                    def profile = "/tmp/jenkins-chrome-${env.BUILD_NUMBER}"
-                    withEnv(["_JAVA_OPTIONS=-Dwebdriver.chrome.userDataDir=${profile}"]) {
-                        bat """
-                            docker run --rm ^
-                                -v "%cd%:/app" ^
-                                -v "%cd%\\.m2:/root/.m2" ^
-                                -w /app ^
-                                -e _JAVA_OPTIONS ^
-                                testing-docker:latest ^
-                                bash -c "Xvfb :99 & export DISPLAY=:99 && echo \"Picked up _JAVA_OPTIONS: \$_JAVA_OPTIONS\" && mvn clean test -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Push on Success') {
-            when {
-                branch 'ci-setup'
-                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'github-push', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                    bat """
-                        git config user.email "ci-bot@example.com"
-                        git config user.name "ci-bot"
-                        git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/0gan333/testingandlearning.git
-                        git add Jenkinsfile
-                        git commit -m "✅ Jenkinsfile: Pass unique Chrome profile via _JAVA_OPTIONS"
-                        git push origin ci-setup
-                    """
-                }
-            }
-        }
+    stage('Install JAR') {
+      steps {
+        bat 'mvn install:install-file -Dfile=lib/seleniumUpgrade-0.0.1-SNAPSHOT.jar ...'
+      }
     }
-
-    post {
+    stage('Build Docker Image') {
+      steps {
+        bat 'docker build -t testing-docker:latest .'
+      }
+    }
+    stage('Run DynamicUIComponentsTest') {
+      steps {
+        // Run tests inside the Docker container using its ENTRYPOINT
+        bat 'docker run --rm ' +
+            '-v "%WORKSPACE%:/app" ' +
+            '-v "%WORKSPACE%/.m2:/root/.m2" ' +
+            '-w /app ' +
+            '-e _JAVA_OPTIONS ' +
+            'testing-docker:latest'
+      }
+      post {
         always {
-            junit '**/target/surefire-reports/*.xml'
+          // Publish Surefire (TestNG) reports
+          junit 'target/surefire-reports/*.xml'
         }
-        success {
-            echo '✅ CI pipeline finished successfully.'
-        }
-        failure {
-            echo '❌ CI pipeline failed — check the logs.'
-        }
+      }
     }
+  }
+  post {
+    failure {
+      echo 'CI pipeline failed – please check the logs.'
+    }
+  }
 }
