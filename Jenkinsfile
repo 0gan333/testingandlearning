@@ -10,7 +10,7 @@ pipeline {
 
         stage('Install External JAR') {
             steps {
-                // Install your custom snapshot into the local repo inside the agent
+                // Install your custom SNAPSHOT into the local Maven repo on the agent
                 bat """
                     if not exist "%WORKSPACE%\\.m2\\repository" mkdir "%WORKSPACE%\\.m2\\repository"
                     mvn install:install-file ^
@@ -33,7 +33,7 @@ pipeline {
 
         stage('Run DynamicUIComponentsTest') {
             steps {
-                // Let the image’s ENTRYPOINT (entrypoint.sh) handle Xvfb & mvn test
+                // This runs your image’s entrypoint.sh, which starts Xvfb & runs mvn test against testng.xml
                 bat """
                     docker run --rm ^
                         -v "%WORKSPACE%:/app" ^
@@ -44,8 +44,8 @@ pipeline {
                 """
             }
             post {
-                // Always collect the Surefire XML to show results in Jenkins
                 always {
+                    // Collect Surefire (TestNG) reports so Jenkins shows "Tests run: 6, Failures: 1, Errors: 0, Skipped: 0"
                     junit 'target/surefire-reports/*.xml'
                 }
             }
