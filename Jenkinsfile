@@ -39,20 +39,19 @@ pipeline {
                 bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
                 script {
-                    // Generate a unique Chrome user-data-dir path
-                    def chromeProfileDir = "/tmp/chrome-profile-${new Random().nextInt(99999)}"
+                    def chromeProfileDir = "/tmp/jenkins-profile-${new Random().nextInt(99999)}"
 
-                    // Compose the Docker command using that path
-                    def testCmd = """
+                    def dockerCommand = """
                         docker run --rm ^
                             -v "%cd%:/app" ^
                             -v "%cd%\\.m2:/root/.m2" ^
                             -w /app ^
+                            -e "_JAVA_OPTIONS=-Dwebdriver.chrome.userDataDir=${chromeProfileDir}" ^
                             testing-docker:latest ^
-                            bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dheadless=true -Dchrome.userDataDir=${chromeProfileDir} -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
+                            bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
                     """
 
-                    bat testCmd
+                    bat dockerCommand
                 }
             }
         }
@@ -68,8 +67,8 @@ pipeline {
                         git config user.email "ci-bot@example.com"
                         git config user.name "ci-bot"
                         git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/0gan333/testingandlearning.git
-                        git add .
-                        git commit -m "🔄 Auto-push from Jenkins after successful test run"
+                        git add Jenkinsfile
+                        git commit -m "🚑 Final fix: Unique Chrome profile passed via _JAVA_OPTIONS in Jenkinsfile"
                         git push origin ci-setup
                     '''
                 }
