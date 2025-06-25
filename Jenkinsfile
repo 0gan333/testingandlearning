@@ -39,18 +39,15 @@ pipeline {
                 bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
 
                 script {
-                    def chromeProfileDir = "/tmp/jenkins-profile-${new Random().nextInt(99999)}"
-
-                    def dockerCommand = """
+                    def dockerCommand = '''
                         docker run --rm ^
                             -v "%cd%:/app" ^
                             -v "%cd%\\.m2:/root/.m2" ^
                             -w /app ^
-                            -e "_JAVA_OPTIONS=-Dwebdriver.chrome.userDataDir=${chromeProfileDir}" ^
+                            --env _JAVA_OPTIONS="-Dwebdriver.chrome.userDataDir=/tmp/chrome-profile-%BUILD_NUMBER%" ^
                             testing-docker:latest ^
                             bash -c "Xvfb :99 & export DISPLAY=:99 && mvn clean test -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
-                    """
-
+                    '''
                     bat dockerCommand
                 }
             }
@@ -68,7 +65,7 @@ pipeline {
                         git config user.name "ci-bot"
                         git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/0gan333/testingandlearning.git
                         git add Jenkinsfile
-                        git commit -m "🚑 Final fix: Unique Chrome profile passed via _JAVA_OPTIONS in Jenkinsfile"
+                        git commit -m "✅ Jenkinsfile: Unique Chrome profile per build via _JAVA_OPTIONS"
                         git push origin ci-setup
                     '''
                 }
