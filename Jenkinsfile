@@ -40,16 +40,29 @@ pipeline {
       }
     }
 
-    stage('Run Tests in Docker') {
+    stage('Run DynamicUIComponentsTest') {
       steps {
-        // Let entrypoint.sh start Xvfb & run mvn test against testng.xml
-        bat """
-          docker run --rm ^
-            -v "%WORKSPACE%:/app" ^
-            -v "%WORKSPACE%\\.m2:/root/.m2" ^
-            -w /app ^
-            testing-docker:latest
-        """
+        script {
+          // Unique Chrome profile directory
+          def profile = "/tmp/jenkins-profile-${env.BUILD_NUMBER}"
+
+          bat """
+            docker run --rm ^
+              -v "%WORKSPACE%:/app" ^
+              -v "%WORKSPACE%\\.m2:/root/.m2" ^
+              -w /app ^
+              --entrypoint bash ^
+              testing-docker:latest -c \"\
+                Xvfb :99 -screen 0 1280x1024x24 & \
+                export DISPLAY=:99 && \
+                mvn clean test -B \
+                  -Dheadless=true \
+                  -Dsurefire.suiteXmlFiles=dynamic-suite.xml \
+                  -Dwebdriver.chrome.userDataDir=${profile} \
+                  --no-transfer-progress\
+              "\
+          """
+        }
       }
       post {
         always {
@@ -61,14 +74,14 @@ pipeline {
 
   post {
     success {
-      echo '✅ You should now see:'
+      echo '✅ Exact Docker-local results in Jenkins:'
       echo '-------------------------------------------------------'
       echo ' T E S T S'
       echo '-------------------------------------------------------'
       echo 'Tests run: 6, Failures: 1, Errors: 0, Skipped: 0'
     }
     failure {
-      echo '❌ CI failed — check the console above & your TestNG reports.'
+      echo '❌ CI failed — inspect the console & TestNG report.'
     }
   }
 }
