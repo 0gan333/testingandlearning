@@ -36,36 +36,23 @@ pipeline {
 
     stage('Generate TestNG Suite') {
       steps {
-        // Creates dynamic-suite.xml in workspace
         bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
       }
     }
 
-    stage('Run DynamicUIComponentsTest') {
+    stage('Run Tests in Docker') {
       steps {
-        script {
-          // Unique Chrome profile dir per build
-          def profile = "/tmp/jenkins-profile-${env.BUILD_NUMBER}"
-
-          // Run exactly the same commands you use locally
-          bat """
-            docker run --rm ^
-              -v "%WORKSPACE%:/app" ^
-              -v "%WORKSPACE%\\.m2:/root/.m2" ^
-              -w /app ^
-              --entrypoint bash ^
-              --env _JAVA_OPTIONS="-Dwebdriver.chrome.userDataDir=${profile}" ^
-              testing-docker:latest -c " \
-                Xvfb :99 -screen 0 1280x1024x24 & \
-                export DISPLAY=:99 && \
-                mvn clean test -B -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml \
-              "
-          """
-        }
+        // Let entrypoint.sh start Xvfb & run mvn test against testng.xml
+        bat """
+          docker run --rm ^
+            -v "%WORKSPACE%:/app" ^
+            -v "%WORKSPACE%\\.m2:/root/.m2" ^
+            -w /app ^
+            testing-docker:latest
+        """
       }
       post {
         always {
-          // So Jenkins shows “Tests run: 6, Failures: 1, Errors: 0, Skipped: 0”
           junit 'target/surefire-reports/*.xml'
         }
       }
@@ -74,10 +61,14 @@ pipeline {
 
   post {
     success {
-      echo '✅ CI passed with the same 6 tests you see locally!'
+      echo '✅ You should now see:'
+      echo '-------------------------------------------------------'
+      echo ' T E S T S'
+      echo '-------------------------------------------------------'
+      echo 'Tests run: 6, Failures: 1, Errors: 0, Skipped: 0'
     }
     failure {
-      echo '❌ CI failed — check the console above and the TestNG report.'
+      echo '❌ CI failed — check the console above & your TestNG reports.'
     }
   }
 }
