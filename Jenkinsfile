@@ -3,6 +3,7 @@ pipeline {
 
   environment {
     MAVEN_LOCAL = "${env.WORKSPACE}\\.m2\\repository"
+    PROFILE_DIR  = "/tmp/jenkins-${env.BUILD_NUMBER}"    // unique per build
   }
 
   stages {
@@ -45,8 +46,13 @@ pipeline {
             -v "%WORKSPACE%:/app" ^
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
             -w /app ^
-            --entrypoint bash ^
-            testing-docker:latest -c "Xvfb :99 -screen 0 1280x1024x24 & export DISPLAY=:99 && mvn clean test -B -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
+            -e PROFILE_DIR="${PROFILE_DIR}" ^
+            testing-docker:latest ^
+            /entrypoint.sh     // let entrypoint start Xvfb, then...
+            mvn clean test -B ^
+              -Dheadless=true ^
+              -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
+              -Dwebdriver.chrome.userDataDir=\$PROFILE_DIR
         """
       }
       post {
@@ -59,10 +65,10 @@ pipeline {
 
   post {
     success {
-      echo '✅ CI passed—“Tests run: 6, Failures: 1, Errors: 0, Skipped: 0”'
+      echo '✅ CI passed: 6 tests run, 1 failure, 0 skipped.'
     }
     failure {
-      echo '❌ CI failed—see console & TestNG report.'
+      echo '❌ CI failed—inspect console & TestNG report.'
     }
   }
 }
