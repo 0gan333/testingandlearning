@@ -40,21 +40,13 @@ pipeline {
 
     stage('Run DynamicUIComponentsTest') {
       steps {
-        // override entrypoint so we can pass our own mvn command:
         bat """
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
             -w /app ^
             --entrypoint bash ^
-            testing-docker:latest -c " \
-              Xvfb :99 -screen 0 1280x1024x24 & \
-              export DISPLAY=:99 && \
-              mvn clean test -B ^
-                -Dheadless=true ^
-                -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
-                --no-transfer-progress \
-            "
+            testing-docker:latest -c "Xvfb :99 -screen 0 1280x1024x24 & export DISPLAY=:99 && mvn clean test -B -Dheadless=true -Dsurefire.suiteXmlFiles=dynamic-suite.xml --no-transfer-progress"
         """
       }
       post {
