@@ -7,9 +7,7 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps {
-        checkout scm
-      }
+      steps { checkout scm }
     }
 
     stage('Install External JAR') {
@@ -40,14 +38,23 @@ pipeline {
       }
     }
 
-    stage('Run Tests in Docker') {
+    stage('Run DynamicUIComponentsTest') {
       steps {
-        // Let entrypoint.sh start Xvfb and run mvn test exactly as you do locally:
+        // override entrypoint so we can pass our own mvn command:
         bat """
           docker run --rm ^
             -v "%WORKSPACE%:/app" ^
             -v "%WORKSPACE%\\.m2:/root/.m2" ^
-            testing-docker:latest
+            -w /app ^
+            --entrypoint bash ^
+            testing-docker:latest -c " \
+              Xvfb :99 -screen 0 1280x1024x24 & \
+              export DISPLAY=:99 && \
+              mvn clean test -B ^
+                -Dheadless=true ^
+                -Dsurefire.suiteXmlFiles=dynamic-suite.xml ^
+                --no-transfer-progress \
+            "
         """
       }
       post {
@@ -60,10 +67,10 @@ pipeline {
 
   post {
     success {
-      echo '✅ CI passed—“Tests run: 6, Failures: 1, Errors: 0, Skipped: 0” as expected.'
+      echo '✅ CI passed—“Tests run: 6, Failures: 1, Errors: 0, Skipped: 0”'
     }
     failure {
-      echo '❌ CI failed—please inspect the console & TestNG report.'
+      echo '❌ CI failed—see console & TestNG report.'
     }
   }
 }
