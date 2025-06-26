@@ -1,8 +1,13 @@
 pipeline {
-  agent { label 'docker-agent-02' }
+  agent {
+    dockerfile {
+      filename 'Dockerfile'
+      args       '-v ${WORKSPACE}/.m2:/root/.m2'
+    }
+  }
 
   environment {
-    MAVEN_LOCAL = '.m2\\repository'
+    MAVEN_LOCAL = '/root/.m2/repository'
   }
 
   stages {
@@ -14,55 +19,31 @@ pipeline {
 
     stage('Install External JAR') {
       steps {
-        bat """
-          if not exist "%WORKSPACE%\\${MAVEN_LOCAL}" mkdir "%WORKSPACE%\\${MAVEN_LOCAL}"
-          mvn install:install-file ^
-            -Dfile=lib\\seleniumUpgrade-0.0.1-SNAPSHOT.jar ^
-            -DgroupId=AutomatSE ^
-            -DartifactId=seleniumUpgrade ^
-            -Dversion=0.0.1-SNAPSHOT ^
-            -Dpackaging=jar ^
-            -DgeneratePom=true ^
-            -Dmaven.repo.local="%WORKSPACE%\\${MAVEN_LOCAL}"
-        """
-      }
-    }
-
-    stage('Build Docker Image') {
-      steps {
-        bat 'docker build -t testing-docker:latest .'
+        sh '''
+          mkdir -p "${MAVEN_LOCAL}"
+          mvn install:install-file \
+            -Dfile=lib/seleniumUpgrade-0.0.1-SNAPSHOT.jar \
+            -DgroupId=AutomatSE \
+            -DartifactId=seleniumUpgrade \
+            -Dversion=0.0.1-SNAPSHOT \
+            -Dpackaging=jar \
+            -DgeneratePom=true \
+            -Dmaven.repo.local="${MAVEN_LOCAL}"
+        '''
       }
     }
 
     stage('Generate TestNG Suite') {
       steps {
+        // this writes dynamic-suite.xml into the container /app
         bat 'powershell -ExecutionPolicy Bypass -File generate-xml.ps1'
       }
     }
 
-    stage('Run DynamicUIComponentsTest') {
+    stage('Run Tests (via entrypoint)') {
       steps {
-        script {
-          // Unique Chrome profile directory
-          def profile = "/tmp/jenkins-profile-${env.BUILD_NUMBER}"
-
-          bat """
-            docker run --rm ^
-              -v "%WORKSPACE%:/app" ^
-              -v "%WORKSPACE%\\.m2:/root/.m2" ^
-              -w /app ^
-              --entrypoint bash ^
-              testing-docker:latest -c \"\
-                Xvfb :99 -screen 0 1280x1024x24 & \
-                export DISPLAY=:99 && \
-                mvn clean test -B \
-                  -Dheadless=true \
-                  -Dsurefire.suiteXmlFiles=dynamic-suite.xml \
-                  -Dwebdriver.chrome.userDataDir=${profile} \
-                  --no-transfer-progress\
-              "\
-          """
-        }
+        // simply invoke your entrypoint script—no need to re-implement Xvfb/mvn here
+        sh './entrypoint.sh'
       }
       post {
         always {
@@ -74,14 +55,10 @@ pipeline {
 
   post {
     success {
-      echo '✅ Exact Docker-local results in Jenkins:'
-      echo '-------------------------------------------------------'
-      echo ' T E S T S'
-      echo '-------------------------------------------------------'
-      echo 'Tests run: 6, Failures: 1, Errors: 0, Skipped: 0'
+      echo '✅ Success! You should now see exactly 6 tests run, 1 failure, 0 skipped—just like your local Docker.'
     }
     failure {
-      echo '❌ CI failed — inspect the console & TestNG report.'
+      echo '❌ Pipeline failed—check console & TestNG report.'
     }
   }
 }
