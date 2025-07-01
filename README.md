@@ -1,3 +1,17 @@
+# UI Testing Framework – Dockerized & CI/CD Ready 🚀
+
+### ⚙️ Built with: Java · Selenium · TestNG · Maven · Docker · Jenkins
+
+---
+
+## Why This Project Exists
+
+This framework was created after months of studying and real‑world experimentation — not as a tutorial copy, but as a working CI/CD solution designed from scratch. It’s fully automated, dockerized, and runs in headless Chrome using Jenkins pipelines.
+
+It reflects real QA workflows and can be adapted to any scalable UI test pipeline.
+
+---
+
 # Automated UI Test Framework
 
 **Tech stack:** Java · Selenium · TestNG · Maven · Docker · Jenkins
